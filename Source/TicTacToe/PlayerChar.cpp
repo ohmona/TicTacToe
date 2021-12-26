@@ -2,6 +2,7 @@
 
 
 #include "PlayerChar.h"
+#include <Kismet/GameplayStatics.h>
 
 // Sets default values
 APlayerChar::APlayerChar()
@@ -9,16 +10,22 @@ APlayerChar::APlayerChar()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	Movement = Cast<UCharacterMovementComponent>(GetCharacterMovement());
+	//Movement = CreateDefaultSubobject<UPlayerCharMovementComponent>(TEXT("Custom movement component"));
+	Movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	Movement->UpdatedComponent = RootComponent;
 	Movement->CrouchedHalfHeight = CrouchScale;
+	Movement->JumpZVelocity = JumpScale;
+
+
 }
 
 // Called when the game starts or when spawned
 void APlayerChar::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Log, TEXT("Ihr lernt zu ungenau"));
-	UE_LOG(LogTemp, Log, TEXT("Speed : %f"), DefaultSpeed);
+	UE_LOG(LogTemp, Log, TEXT("[Load] Player Char"));
+	UE_LOG(LogTemp, Log, TEXT("[prof] Speed : %f"), DefaultSpeed);
+	UE_LOG(LogTemp, Log, TEXT("[prof] Jump ability : %f"), JumpScale);
 }
 
 // Called every frame
@@ -33,21 +40,22 @@ void APlayerChar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UE_LOG(LogTemp, Log, TEXT("[fun] setup input component"));
 	InputComponent->BindAxis("MoveForward", this, &APlayerChar::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &APlayerChar::MoveRight);
-	InputComponent->BindAxis("Turn", this, &APlayerChar::AddControllerYawInput);
-	InputComponent->BindAxis("Lookup", this, &APlayerChar::AddControllerPitchInput);
+	InputComponent->BindAxis("Turn", this, &APlayerChar::Turn);
+	InputComponent->BindAxis("Lookup", this, &APlayerChar::Lookup);
 
 	InputComponent->BindAction("Select",IE_Released, this, &APlayerChar::Select);
 
 	InputComponent->BindAction("Jump",IE_Pressed, this, &APlayerChar::StartJump);
 	InputComponent->BindAction("Jump",IE_Released, this, &APlayerChar::StopJump);
 
-	InputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerChar::StartSprint);
-	InputComponent->BindAction("Sprint", IE_Released, this, &APlayerChar::StopSprint);
+	InputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerChar::CLStartSprint);
+	InputComponent->BindAction("Sprint", IE_Released, this, &APlayerChar::CLStopSprint);
 
-	InputComponent->BindAction("Sneak", IE_Pressed, this, &APlayerChar::StartSneak);
-	InputComponent->BindAction("Sneak", IE_Released, this, &APlayerChar::StopSneak);
+	InputComponent->BindAction("Sneak", IE_Pressed, this, &APlayerChar::CLStartSneak);
+	InputComponent->BindAction("Sneak", IE_Released, this, &APlayerChar::CLStopSneak);
 }
 
 void APlayerChar::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -70,14 +78,37 @@ void APlayerChar::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
+void APlayerChar::ReturnToMainMenu() 
+{
+	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("MainMenu")));
+}
+
+
+//
+// Movement
+//
 void APlayerChar::MoveForward(float AxisValue)
 {
-	AddMovementInput(GetActorForwardVector(), AxisValue);
+	if (Movement && (Movement->UpdatedComponent == RootComponent)) {
+		AddMovementInput(GetActorForwardVector(), AxisValue, true);
+	}
 }
 
 void APlayerChar::MoveRight(float AxisValue)
 {
-	AddMovementInput(GetActorRightVector(), AxisValue);
+	if (Movement && (Movement->UpdatedComponent == RootComponent)) {
+		AddMovementInput(GetActorRightVector(), AxisValue);
+	}
+}
+
+void APlayerChar::Turn(float AxisValue)
+{
+	AddControllerYawInput(AxisValue * Sensitivity);
+}
+
+void APlayerChar::Lookup(float AxisValue)
+{
+	AddControllerPitchInput(AxisValue * Sensitivity);
 }
 
 void APlayerChar::Select()
@@ -100,31 +131,75 @@ void APlayerChar::StopJump()
 	bPressedJump = false;
 }
 
-void APlayerChar::StartSprint()
+// SPRINT
+void APlayerChar::CLStartSprint()
+{
+	Movement->MaxWalkSpeed = SprintSpeed;
+	StartSprint();
+}
+void APlayerChar::StartSprint_Implementation()
 {
 	Movement->MaxWalkSpeed = SprintSpeed;
 }
-void APlayerChar::StopSprint()
+
+void APlayerChar::CLStopSprint()
+{
+	Movement->MaxWalkSpeed = DefaultSpeed;
+	StopSprint();
+}
+void APlayerChar::StopSprint_Implementation()
 {
 	Movement->MaxWalkSpeed = DefaultSpeed;
 }
 
-void APlayerChar::StartSneak()
+// SNEAK
+void APlayerChar::CLStartSneak()
 {
-	Movement->GetNavAgentPropertiesRef().bCanCrouch = true;
-	Crouch();
+	if (!isCrouching) {
+		isCrouching = true;
+		SetActorLocation(FVector(
+			GetActorLocation().X,
+			GetActorLocation().Y,
+			GetActorLocation().Z + CrouchScale
+		));
+		Movement->GetNavAgentPropertiesRef().bCanCrouch = true;
+		Crouch();
+	}
+	StartSneak();
+}
+void APlayerChar::StartSneak_Implementation()
+{
+	if (!isCrouching) {
+		isCrouching = true;
+		SetActorLocation(FVector(
+			GetActorLocation().X,
+			GetActorLocation().Y,
+			GetActorLocation().Z + CrouchScale
+		));
+		Movement->GetNavAgentPropertiesRef().bCanCrouch = true;
+		Crouch();
+	}
 }
 
-void APlayerChar::StopSneak()
+void APlayerChar::CLStopSneak()
 {
+	isCrouching = false;
+
+	UnCrouch();
+	StopSneak();
+}
+void APlayerChar::StopSneak_Implementation()
+{
+	isCrouching = false;
+	
 	UnCrouch();
 }
 
 // 
 //	SERVER
 //
+
 void APlayerChar::AsServer_Implementation()
 {
 	StandingPlatform->FromServer();
 }
-

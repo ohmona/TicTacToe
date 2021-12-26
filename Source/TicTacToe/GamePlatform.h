@@ -51,7 +51,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 		void BP_ChangeMaterial();
 public:
-
 	UFUNCTION()
 	void FromServer();
 

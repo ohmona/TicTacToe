@@ -27,6 +27,7 @@ void AGamePlatformManager::BeginPlay()
 	ATicTacToeGameStateBase* Gamestate = Cast<ATicTacToeGameStateBase>(UGameplayStatics::GetGameState(GetWorld()));
 	Gamestate->MainPlatformManager = this;
 
+	UE_LOG(LogTemp, Log, TEXT("[Load] GamePlatform Manager"));
 }
 
 // Called every frame
@@ -55,6 +56,17 @@ void AGamePlatformManager::AddArea(EState team, int32 x, int32 y)
 	}
 }
 
+EState AGamePlatformManager::whoWin(int32 team_index)
+{
+	if (team_index == 1) {
+		return EState::RED;
+	}
+	else if (team_index == 2) {
+		return EState::BLUE;
+	}
+	return EState::NONE;
+}
+
 bool AGamePlatformManager::isSomeoneWon()
 {
 	int team = 0;
@@ -69,6 +81,7 @@ bool AGamePlatformManager::isSomeoneWon()
 				}
 			}
 			if (count == 3) {
+				winner = whoWin((int32) team);
 				return true;
 			}
 			count = 0;
@@ -82,6 +95,7 @@ bool AGamePlatformManager::isSomeoneWon()
 				}
 			}
 			if (count == 3) {
+				winner = whoWin((int32)team);
 				return true;
 			}
 			count = 0;
@@ -93,6 +107,7 @@ bool AGamePlatformManager::isSomeoneWon()
 				count++;
 			}
 			if (count >= 3) {
+				winner = whoWin((int32)team);
 				return true;
 			}
 		}
@@ -112,6 +127,7 @@ bool AGamePlatformManager::isSomeoneWon()
 			}
 
 			if (count == 3) {
+				winner = whoWin((int32)team);
 				return true;
 			}
 		}

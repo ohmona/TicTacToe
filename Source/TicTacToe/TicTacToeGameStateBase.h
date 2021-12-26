@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GamePlatform.h"
 #include "GamePlatformManager.h"
+#include "MultiplayManager.h"
 #include "GameFramework/GameStateBase.h"
 #include "TicTacToeGameStateBase.generated.h"
 
@@ -21,7 +22,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default Value")
 		EState Round = EState::RED;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mains")
+	AMultiplayManager* MainMultiplayManager;
+
 	// instance reference
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mains")
 		AGamePlatformManager* MainPlatformManager;
+
 };

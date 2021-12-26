@@ -6,6 +6,7 @@
 #include "GamePlatform.h"
 #include "GameFramework/Character.h"
 #include <GameFramework/CharacterMovementComponent.h>
+#include <TicTacToe/PlayerCharMovementComponent.h>
 #include "PlayerChar.generated.h"
 
 UCLASS()
@@ -32,6 +33,10 @@ public:
 
 	virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
 
+// Components
+public:
+	class UCharacterMovementComponent* Movement;
+
 // Functions for ownership
 public:
 
@@ -39,39 +44,53 @@ public:
 		void AsServer();
 
 public:
-	UFUNCTION()
-		void MoveForward(float AxisValue);
+	UFUNCTION(BlueprintCallable)
+	void ReturnToMainMenu();
 
-	UFUNCTION()
-		void MoveRight(float AxisValue);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+		void BP_playWinEffect(const EState winner);
+
+// Movements
+public:
+	void MoveForward(float AxisValue);
+	void MoveRight(float AxisValue);
+
+	void Turn(float AxisValue);
+	void Lookup(float AxisValue);
 
 	void Select();
 
 	void StartJump();
 	void StopJump();
 
-	void StartSprint();
-	void StopSprint();
+	UFUNCTION(Server, Unreliable) void StartSprint(); void CLStartSprint();
+	UFUNCTION(Server, Unreliable) void StopSprint(); void CLStopSprint();
 
-	void StartSneak();
-	void StopSneak();
+	UFUNCTION(Server, Unreliable) void StartSneak(); void CLStartSneak();
+	UFUNCTION(Server, Unreliable) void StopSneak(); void CLStopSneak();
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Movement")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")
 		float DefaultSpeed = 600.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")
 		float SprintSpeed = 1200.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")
 		float CrouchScale = 100.0f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")
+		float JumpScale = 500.0f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Mouse")
+		float Sensitivity = 1.0f;
 
 	UPROPERTY(BlueprintReadWrite)
 		bool isStandingOver = false;
 
 	UPROPERTY(BlueprintReadWrite)
-		AGamePlatform* StandingPlatform;
+		bool isCrouching = false;
 
-public:
-	UCharacterMovementComponent* Movement;
+	UPROPERTY(BlueprintReadWrite)
+		AGamePlatform* StandingPlatform;
 };

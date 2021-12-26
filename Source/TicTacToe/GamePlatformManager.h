@@ -32,6 +32,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
 	UFUNCTION(BlueprintCallable)
 		void AddArea(EState team, int32 x, int32 y);
 
@@ -41,6 +42,9 @@ public:
 	UFUNCTION(Category = "gamemode", BlueprintImplementableEvent, BlueprintCallable)
 		void onWin();
 
+	EState whoWin(int32 team_index);
+
+public:
 	UPROPERTY(VisibleAnywhere)
 		int32 none_index = 0;
 
@@ -51,4 +55,7 @@ public:
 		int32 blue_team_index = 2;
 
 	TArray<FYCoordinate> GameArea;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EState winner;
 };

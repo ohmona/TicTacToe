@@ -25,16 +25,30 @@ public:
 
 public:
 	// quit
+	UFUNCTION(BlueprintCallable)
+		void QuitGame();
 	// continue
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+		void ContinueGame();
 public:
 	// host
-		// ip
-		// lan
+	UFUNCTION(BlueprintCallable)
+		void HostGame(bool use_lan, const FName level);
+	
+	UFUNCTION(BlueprintImplementableEvent) void BP_OpenGameLan(const FName level);
+	UFUNCTION(BlueprintImplementableEvent) void BP_OpenGameIp(const FName cmd);
+	
 	// join
-		// ip
-		// lan
-public:
-	// hide cursor
+	// ip
+	UFUNCTION(BlueprintCallable)
+		void JoinGameIp(FName adress);
+	UFUNCTION(BlueprintImplementableEvent) void BP_JoinGameIp(const FName adress);
+	// lan
+	UFUNCTION(BlueprintCallable)
+		void JoinGameLan();
+	UFUNCTION(BlueprintImplementableEvent) void BP_JoinGameLan();
 public:
 	// level array
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TArray<FString> levels;
 };
