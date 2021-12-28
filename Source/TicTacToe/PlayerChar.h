@@ -52,22 +52,22 @@ public:
 
 // Movements
 public:
-	void MoveForward(float AxisValue);
-	void MoveRight(float AxisValue);
+	UFUNCTION(BlueprintCallable) void MoveForward(float AxisValue);
+	UFUNCTION(BlueprintCallable) void MoveRight(float AxisValue);
 
-	void Turn(float AxisValue);
-	void Lookup(float AxisValue);
+	UFUNCTION(BlueprintCallable) void Turn(float AxisValue);
+	UFUNCTION(BlueprintCallable) void Lookup(float AxisValue);
 
-	void Select();
+	UFUNCTION(BlueprintCallable) void Select();
 
-	void StartJump();
-	void StopJump();
+	UFUNCTION(BlueprintCallable) void StartJump();
+	UFUNCTION(BlueprintCallable) void StopJump();
 
-	UFUNCTION(Server, Unreliable) void StartSprint(); void CLStartSprint();
-	UFUNCTION(Server, Unreliable) void StopSprint(); void CLStopSprint();
+	UFUNCTION(BlueprintCallable, Server, Unreliable) void StartSprint(); void CLStartSprint();
+	UFUNCTION(BlueprintCallable, Server, Unreliable) void StopSprint(); void CLStopSprint();
 
-	UFUNCTION(Server, Unreliable) void StartSneak(); void CLStartSneak();
-	UFUNCTION(Server, Unreliable) void StopSneak(); void CLStopSneak();
+	UFUNCTION(BlueprintCallable, Server, Unreliable) void StartSneak(); void CLStartSneak();
+	UFUNCTION(BlueprintCallable, Server, Unreliable) void StopSneak(); void CLStopSneak();
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")

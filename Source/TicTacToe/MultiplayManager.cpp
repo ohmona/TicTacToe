@@ -13,6 +13,7 @@ AMultiplayManager::AMultiplayManager()
 
 	levels.Add("Default");
 	levels.Add("Room");
+	levels.Add("Island");
 }
 
 // Called when the game starts or when spawned

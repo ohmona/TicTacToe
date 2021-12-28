@@ -3,6 +3,7 @@
 
 #include "PlayerChar.h"
 #include <Kismet/GameplayStatics.h>
+#include <TicTacToe/Trigger.h>
 
 // Sets default values
 APlayerChar::APlayerChar()
@@ -65,6 +66,11 @@ void APlayerChar::NotifyActorBeginOverlap(AActor* OtherActor)
 		StandingPlatform->isOverThisChar = true;
 		isStandingOver = true;
 		StandingPlatform->StandingPawn = this;
+	}
+
+	ATrigger* trigger = Cast<ATrigger>(OtherActor);
+	if (trigger != nullptr) {
+		trigger->onSelected_target(this);
 	}
 }
 

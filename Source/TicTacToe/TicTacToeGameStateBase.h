@@ -4,8 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GamePlatform.h"
+
 #include "GamePlatformManager.h"
 #include "MultiplayManager.h"
+#include <TicTacToe/EventList.h>
+
 #include "GameFramework/GameStateBase.h"
 #include "TicTacToeGameStateBase.generated.h"
 
@@ -25,8 +28,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mains")
 	AMultiplayManager* MainMultiplayManager;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mains")
+	AEventList* EventList;
+
 	// instance reference
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mains")
-		AGamePlatformManager* MainPlatformManager;
+	AGamePlatformManager* MainPlatformManager;
 
 };
