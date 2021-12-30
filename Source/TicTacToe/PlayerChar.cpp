@@ -4,6 +4,7 @@
 #include "PlayerChar.h"
 #include <Kismet/GameplayStatics.h>
 #include <TicTacToe/Trigger.h>
+#include <Runtime/Engine/Public/Net/UnrealNetwork.h>
 
 // Sets default values
 APlayerChar::APlayerChar()
@@ -16,8 +17,6 @@ APlayerChar::APlayerChar()
 	Movement->UpdatedComponent = RootComponent;
 	Movement->CrouchedHalfHeight = CrouchScale;
 	Movement->JumpZVelocity = JumpScale;
-
-
 }
 
 // Called when the game starts or when spawned
@@ -27,13 +26,18 @@ void APlayerChar::BeginPlay()
 	UE_LOG(LogTemp, Log, TEXT("[Load] Player Char"));
 	UE_LOG(LogTemp, Log, TEXT("[prof] Speed : %f"), DefaultSpeed);
 	UE_LOG(LogTemp, Log, TEXT("[prof] Jump ability : %f"), JumpScale);
+
+	spawn_point = GetActorLocation();
 }
 
 // Called every frame
 void APlayerChar::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
+	if (GetActorLocation().Z < -10000) {
+		TeleportTo(spawn_point, GetActorRotation());
+	}
 }
 
 // Called to bind functionality to input
@@ -67,11 +71,6 @@ void APlayerChar::NotifyActorBeginOverlap(AActor* OtherActor)
 		isStandingOver = true;
 		StandingPlatform->StandingPawn = this;
 	}
-
-	ATrigger* trigger = Cast<ATrigger>(OtherActor);
-	if (trigger != nullptr) {
-		trigger->onSelected_target(this);
-	}
 }
 
 void APlayerChar::NotifyActorEndOverlap(AActor* OtherActor)
@@ -84,11 +83,16 @@ void APlayerChar::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
+void APlayerChar::Landed(const FHitResult& Result)
+{
+	BP_ShakeCamera();
+	UGameplayStatics::PlaySound2D(GetWorld(), landing_sound, 1, 1, 0);
+}
+
 void APlayerChar::ReturnToMainMenu() 
 {
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("MainMenu")));
 }
-
 
 //
 // Movement
@@ -131,6 +135,7 @@ void APlayerChar::Select()
 void APlayerChar::StartJump()
 {
 	bPressedJump = true;
+	isNOTStanding = true;
 }
 void APlayerChar::StopJump()
 {
@@ -172,7 +177,33 @@ void APlayerChar::CLStartSneak()
 		Crouch();
 	}
 	StartSneak();
+
+	time = 0.0f;
+	timerrun = true;
+
+	GetWorldTimerManager().SetTimer(timer, this, &APlayerChar::RotateCam, 0.01f, true, 0.0f);
 }
+
+void APlayerChar::RotateCam()
+{
+	if (timerrun) {
+		FRotator origin = GetViewRotation();
+		if (time == 0.0f) {
+			GetController()->ClientSetRotation(FRotator(origin.Pitch, origin.Yaw, 10.0f));
+		}
+		else if (time >= 0.01f) {
+			GetController()->ClientSetRotation(FRotator(origin.Pitch, origin.Yaw, (origin.Roll - 0.2f)));
+		}
+		time += 0.01f;
+
+		if (time > 0.5f) {
+			GetController()->ClientSetRotation(FRotator(origin.Pitch, origin.Yaw, 0.0f));
+			timerrun = false;
+			time = 0.0f;
+		}
+	}
+}
+
 void APlayerChar::StartSneak_Implementation()
 {
 	if (!isCrouching) {
@@ -194,11 +225,17 @@ void APlayerChar::CLStopSneak()
 	UnCrouch();
 	StopSneak();
 }
+
 void APlayerChar::StopSneak_Implementation()
 {
 	isCrouching = false;
 	
 	UnCrouch();
+}
+
+void APlayerChar::OnStanding()
+{
+
 }
 
 // 

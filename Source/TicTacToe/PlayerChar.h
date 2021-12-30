@@ -33,6 +33,8 @@ public:
 
 	virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
 
+	virtual void Landed(const FHitResult& Result) override;
+
 // Components
 public:
 	class UCharacterMovementComponent* Movement;
@@ -49,6 +51,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 		void BP_playWinEffect(const EState winner);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void BP_ShakeCamera();
 
 // Movements
 public:
@@ -69,7 +74,20 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable) void StartSneak(); void CLStartSneak();
 	UFUNCTION(BlueprintCallable, Server, Unreliable) void StopSneak(); void CLStopSneak();
 
+	void OnStanding();
+private:
+	float time = 0.0f;
+	bool timerrun = false;
+
+
+	FTimerHandle timer;
+
+	void RotateCam();
+
 public:
+	UPROPERTY(EditAnywhere)
+		USoundBase* landing_sound;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")
 		float DefaultSpeed = 600.0f;
 
@@ -85,12 +103,20 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Mouse")
 		float Sensitivity = 1.0f;
 
+	// on platform!!
 	UPROPERTY(BlueprintReadWrite)
 		bool isStandingOver = false;
 
 	UPROPERTY(BlueprintReadWrite)
 		bool isCrouching = false;
 
+	// generally standing!!
+	UPROPERTY(BlueprintReadWrite)
+		bool isNOTStanding = false;
+
 	UPROPERTY(BlueprintReadWrite)
 		AGamePlatform* StandingPlatform;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector spawn_point;
 };

@@ -25,14 +25,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	// use if only event execution needed
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void onSelected();
+	void AfterEvent();
 
-	// use if specific target needed, set history if needed
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void onSelected_target(AActor* target);
-
+public:
 	UPROPERTY(BlueprintReadOnly)
 	AEventList* events;
 
@@ -41,6 +37,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	AActor* latest_target;
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EEvent desired_event = EEvent::PrintLog;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool isEnable = true;;
