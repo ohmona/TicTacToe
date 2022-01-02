@@ -2,6 +2,9 @@
 
 #pragma once
 
+#define LOG(x) UE_LOG(LogTemp, Log, TEXT(x));
+#define LOG(x,y) UE_LOG(LogTemp, Log, TEXT(x), y);
+
 #include "CoreMinimal.h"
 #include "GamePlatform.h"
 #include "GameFramework/Character.h"
@@ -37,7 +40,10 @@ public:
 
 // Components
 public:
-	class UCharacterMovementComponent* Movement;
+	UPROPERTY(BlueprintReadWrite)
+	class UPlayerCharMovementComponent* Movement;
+
+	class UCharacterMovementComponent* BaseMovement;
 
 // Functions for ownership
 public:
@@ -54,6 +60,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void BP_ShakeCamera();
+
+	void ResetCamera();
 
 // Movements
 public:
@@ -75,10 +83,14 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable) void StopSneak(); void CLStopSneak();
 
 	void OnStanding();
-private:
+
+	void CalcSpeed();
+public:
 	float time = 0.0f;
 	bool timerrun = false;
 
+	float origin_pitch;
+	float origin_yaw;
 
 	FTimerHandle timer;
 
@@ -87,6 +99,11 @@ private:
 public:
 	UPROPERTY(EditAnywhere)
 		USoundBase* landing_sound;
+
+	UPROPERTY(EditAnywhere)
+		USoundBase* sneaking_sound;
+
+public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")
 		float DefaultSpeed = 600.0f;

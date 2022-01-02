@@ -12,11 +12,12 @@ APlayerChar::APlayerChar()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//Movement = CreateDefaultSubobject<UPlayerCharMovementComponent>(TEXT("Custom movement component"));
-	Movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
-	Movement->UpdatedComponent = RootComponent;
-	Movement->CrouchedHalfHeight = CrouchScale;
-	Movement->JumpZVelocity = JumpScale;
+	BaseMovement = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	Movement = CreateDefaultSubobject<UPlayerCharMovementComponent>(TEXT("MovComp"));
+
+	BaseMovement->CrouchedHalfHeight = CrouchScale;
+	BaseMovement->JumpZVelocity = JumpScale;
+	BaseMovement->MaxWalkSpeed = DefaultSpeed;
 }
 
 // Called when the game starts or when spawned
@@ -100,14 +101,14 @@ void APlayerChar::ReturnToMainMenu()
 void APlayerChar::MoveForward(float AxisValue)
 {
 	if (Movement && (Movement->UpdatedComponent == RootComponent)) {
-		AddMovementInput(GetActorForwardVector(), AxisValue, true);
+		Movement->walkForwardAxisValue = AxisValue;
 	}
 }
 
 void APlayerChar::MoveRight(float AxisValue)
 {
 	if (Movement && (Movement->UpdatedComponent == RootComponent)) {
-		AddMovementInput(GetActorRightVector(), AxisValue);
+		Movement->walkRightAxisValue = AxisValue;
 	}
 }
 
@@ -145,85 +146,97 @@ void APlayerChar::StopJump()
 // SPRINT
 void APlayerChar::CLStartSprint()
 {
-	Movement->MaxWalkSpeed = SprintSpeed;
+	BaseMovement->MaxWalkSpeed = SprintSpeed;
 	StartSprint();
 }
 void APlayerChar::StartSprint_Implementation()
 {
-	Movement->MaxWalkSpeed = SprintSpeed;
+	BaseMovement->MaxWalkSpeed = SprintSpeed;
 }
 
 void APlayerChar::CLStopSprint()
 {
-	Movement->MaxWalkSpeed = DefaultSpeed;
+	BaseMovement->MaxWalkSpeed = DefaultSpeed;
 	StopSprint();
 }
 void APlayerChar::StopSprint_Implementation()
 {
-	Movement->MaxWalkSpeed = DefaultSpeed;
+	BaseMovement->MaxWalkSpeed = DefaultSpeed;
 }
 
 // SNEAK
 void APlayerChar::CLStartSneak()
 {
-	if (!isCrouching) {
-		isCrouching = true;
-		SetActorLocation(FVector(
-			GetActorLocation().X,
-			GetActorLocation().Y,
-			GetActorLocation().Z + CrouchScale
-		));
-		Movement->GetNavAgentPropertiesRef().bCanCrouch = true;
-		Crouch();
-	}
 	StartSneak();
 
-	time = 0.0f;
-	timerrun = true;
+	Movement->bPressedSneak = true;
+	UGameplayStatics::PlaySound2D(GetWorld(), sneaking_sound, 1, 1, 0);
 
-	GetWorldTimerManager().SetTimer(timer, this, &APlayerChar::RotateCam, 0.01f, true, 0.0f);
+	if (!GetVelocity().IsNearlyZero()) {
+		CalcSpeed();
+
+		time = 0.0f;
+		timerrun = true;
+
+		Movement->wasRunning = true;
+
+		GetWorldTimerManager().SetTimer(timer, this, &APlayerChar::RotateCam, 0.01f, true, 0.0f);
+	}
 }
 
 void APlayerChar::RotateCam()
 {
 	if (timerrun) {
 		FRotator origin = GetViewRotation();
-		if (time == 0.0f) {
-			GetController()->ClientSetRotation(FRotator(origin.Pitch, origin.Yaw, 10.0f));
-		}
-		else if (time >= 0.01f) {
-			GetController()->ClientSetRotation(FRotator(origin.Pitch, origin.Yaw, (origin.Roll - 0.2f)));
+		origin_pitch = GetViewRotation().Pitch;
+		origin_yaw = GetViewRotation().Yaw;
+
+		if (time < 0.5) {
+			GetController()->ClientSetRotation(FRotator(origin.Pitch, origin.Yaw, (origin.Roll + 0.2f)));
 		}
 		time += 0.01f;
-
-		if (time > 0.5f) {
-			GetController()->ClientSetRotation(FRotator(origin.Pitch, origin.Yaw, 0.0f));
+		if (time == 0.5f) {
 			timerrun = false;
 			time = 0.0f;
 		}
 	}
 }
 
+void APlayerChar::ResetCamera()
+{
+	GetController()->ClientSetRotation(FRotator(
+		origin_pitch, origin_yaw, 0.0f));
+}
+
+void APlayerChar::CalcSpeed()
+{
+	if (BaseMovement->MaxWalkSpeed >= SprintSpeed) {
+		// sprinting + sneaking
+		BaseMovement->MaxWalkSpeed = SprintSpeed * 1.5f;
+		BaseMovement->MaxWalkSpeedCrouched = BaseMovement->MaxWalkSpeed;
+	}
+	else {
+		// walking + sneaking
+		BaseMovement->MaxWalkSpeed = 900.0f; // 900
+		BaseMovement->MaxWalkSpeedCrouched = BaseMovement->MaxWalkSpeed;
+	}
+}
+
 void APlayerChar::StartSneak_Implementation()
 {
-	if (!isCrouching) {
-		isCrouching = true;
-		SetActorLocation(FVector(
-			GetActorLocation().X,
-			GetActorLocation().Y,
-			GetActorLocation().Z + CrouchScale
-		));
-		Movement->GetNavAgentPropertiesRef().bCanCrouch = true;
-		Crouch();
+	Movement->bPressedSneak = true;
+
+	if (!GetVelocity().IsNearlyZero()) {
+		CalcSpeed();
+
+		Movement->wasRunning = true;
 	}
 }
 
 void APlayerChar::CLStopSneak()
 {
-	isCrouching = false;
-
-	UnCrouch();
-	StopSneak();
+	BaseMovement->MaxWalkSpeed = DefaultSpeed;
+	Movement->bPressedSneak = false;
 }
 
 void APlayerChar::StopSneak_Implementation()
