@@ -5,6 +5,7 @@
 #include <Kismet/GameplayStatics.h>
 #include <TicTacToe/Trigger.h>
 #include <Runtime/Engine/Public/Net/UnrealNetwork.h>
+#include <TicTacToe/AimTrigger.h>
 
 // Sets default values
 APlayerChar::APlayerChar()
@@ -18,6 +19,7 @@ APlayerChar::APlayerChar()
 	BaseMovement->CrouchedHalfHeight = CrouchScale;
 	BaseMovement->JumpZVelocity = JumpScale;
 	BaseMovement->MaxWalkSpeed = DefaultSpeed;
+
 }
 
 // Called when the game starts or when spawned
@@ -95,6 +97,27 @@ void APlayerChar::ReturnToMainMenu()
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("MainMenu")));
 }
 
+FHitResult APlayerChar::GetActorInAim()
+{
+	FVector rayLocation;
+	FRotator rayRotation;
+	FVector endTrace = FVector::ZeroVector;
+
+	APlayerController* const playerController = GetWorld()->GetFirstPlayerController();
+
+	if (playerController)
+	{
+		playerController->GetPlayerViewPoint(rayLocation, rayRotation);
+		endTrace = rayLocation + (rayRotation.Vector() * ClickRange);
+	}
+
+	FCollisionQueryParams traceParams(SCENE_QUERY_STAT(GetActorInAim), true, GetInstigator());
+	FHitResult hit(ForceInit);
+	GetWorld()->LineTraceSingleByChannel(hit, rayLocation, endTrace, ECC_Visibility, traceParams);
+
+	return hit;
+}
+
 //
 // Movement
 //
@@ -124,6 +147,21 @@ void APlayerChar::Lookup(float AxisValue)
 
 void APlayerChar::Select()
 {
+	AActor* aim_actor = Cast<AActor>(GetActorInAim().GetActor());
+	if (aim_actor) {
+		AAimTrigger* aim = Cast<AAimTrigger>(aim_actor);
+		if (aim) {
+			aim->clicked_player = this;
+			aim->Run();
+		}
+		APlayerChar* ply = Cast<APlayerChar>(aim_actor);
+		if (ply) {
+			ply->AddMovementInput(ply->GetActorForwardVector(), -1, true);
+			ply->BP_ShakeCamera();
+			UE_LOG(LogTemp, Log, TEXT("Se"));
+		}
+	}
+
 	if (isStandingOver) {
 		UE_LOG(LogTemp, Log, TEXT("Selection onside"));
 		StandingPlatform->Selected();
@@ -251,6 +289,11 @@ void APlayerChar::OnStanding()
 
 }
 
+void APlayerChar::TpLevel(FName level)
+{
+	UE_LOG(LogTemp, Log, TEXT("%s"), *level.ToString())
+	UGameplayStatics::OpenLevel(GetWorld(), level);
+}
 // 
 //	SERVER
 //

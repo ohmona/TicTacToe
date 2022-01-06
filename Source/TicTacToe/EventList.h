@@ -32,7 +32,7 @@ class TICTACTOE_API AEventList : public AActor
 public:
     AEventList();
 
-    void RunEvent(EEvent event, AActor* trigger, AActor* target);
+    void RunEvent(EEvent target_event, AActor* trigger, AActor* target);
 
 protected:
     virtual void BeginPlay() override;

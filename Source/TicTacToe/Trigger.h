@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PlayerCharController.h"
 #include "EventList.h"
 #include "Trigger.generated.h"
 
@@ -28,6 +29,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void AfterEvent();
 
+	virtual void Run();
+
+	APlayerCharController* ctr();
+
 public:
 	UPROPERTY(BlueprintReadOnly)
 	AEventList* events;
@@ -42,5 +47,5 @@ public:
 	EEvent desired_event = EEvent::PrintLog;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool isEnable = true;;
+		bool isEnable = true;
 };

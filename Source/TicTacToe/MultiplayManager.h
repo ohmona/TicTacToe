@@ -6,6 +6,25 @@
 #include "GameFramework/Actor.h"
 #include "MultiplayManager.generated.h"
 
+USTRUCT()
+struct FGameInfo {
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY() bool use_lan;
+	UPROPERTY() FString ip;
+	UPROPERTY() FName level;
+};
+
+USTRUCT(BlueprintType)
+struct FSessionInfo {
+	GENERATED_USTRUCT_BODY()
+public:
+	//UPROPERTY() FGameInfo game_info;
+	UPROPERTY() int32 user_count;
+	UPROPERTY() TArray<FString> Usernames;
+	UPROPERTY() FString HostName;
+};
+
 UCLASS()
 class TICTACTOE_API AMultiplayManager : public AActor
 {
@@ -25,30 +44,33 @@ public:
 
 public:
 	// quit
-	UFUNCTION(BlueprintCallable)
-		void QuitGame();
+	UFUNCTION(BlueprintCallable) void QuitGame();
 	// continue
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-		void ContinueGame();
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent) void ContinueGame();
 public:
 	// host
-	UFUNCTION(BlueprintCallable)
-		void HostGame(bool use_lan, const FName level);
+	UFUNCTION(BlueprintCallable) void HostGame(bool use_lan, const FName level);
 	
 	UFUNCTION(BlueprintImplementableEvent) void BP_OpenGameLan(const FName level);
 	UFUNCTION(BlueprintImplementableEvent) void BP_OpenGameIp(const FName cmd);
 	
 	// join
 	// ip
-	UFUNCTION(BlueprintCallable)
-		void JoinGameIp(FName adress);
+	UFUNCTION(BlueprintCallable) void JoinGameIp(FName adress);
 	UFUNCTION(BlueprintImplementableEvent) void BP_JoinGameIp(const FName adress);
 	// lan
-	UFUNCTION(BlueprintCallable)
-		void JoinGameLan();
+	UFUNCTION(BlueprintCallable) void JoinGameLan();
 	UFUNCTION(BlueprintImplementableEvent) void BP_JoinGameLan();
+
+	UFUNCTION(Server, Unreliable) void UserJoind();
+
+	// start game
+	UFUNCTION(BlueprintCallable) void StartGame();
+
+
 public:
 	// level array
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TArray<FString> levels;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FString> levels;
+
+	UPROPERTY(BlueprintReadWrite) FSessionInfo session_info;
 };

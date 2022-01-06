@@ -2,9 +2,6 @@
 
 #pragma once
 
-#define LOG(x) UE_LOG(LogTemp, Log, TEXT(x));
-#define LOG(x,y) UE_LOG(LogTemp, Log, TEXT(x), y);
-
 #include "CoreMinimal.h"
 #include "GamePlatform.h"
 #include "GameFramework/Character.h"
@@ -56,12 +53,14 @@ public:
 	void ReturnToMainMenu();
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-		void BP_playWinEffect(const EState winner);
+	void BP_playWinEffect(const EState winner);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BP_ShakeCamera();
+	void BP_ShakeCamera();
 
 	void ResetCamera();
+	void CalcSpeed();
+	void TpLevel(FName level);
 
 // Movements
 public:
@@ -82,9 +81,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable) void StartSneak(); void CLStartSneak();
 	UFUNCTION(BlueprintCallable, Server, Unreliable) void StopSneak(); void CLStopSneak();
 
-	void OnStanding();
+	UFUNCTION(BlueprintCallable) FHitResult GetActorInAim();
 
-	void CalcSpeed();
+	void OnStanding();
 public:
 	float time = 0.0f;
 	bool timerrun = false;
@@ -104,6 +103,11 @@ public:
 		USoundBase* sneaking_sound;
 
 public:
+	UPROPERTY(BlueprintReadWrite)
+		FName LevelName;
+
+	UPROPERTY(BlueprintReadWrite)
+		FString user_name = FString(TEXT("USER_NAME"));
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement")
 		float DefaultSpeed = 600.0f;
@@ -119,6 +123,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Mouse")
 		float Sensitivity = 1.0f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Mouse")
+		float ClickRange = 10000.0f;
 
 	// on platform!!
 	UPROPERTY(BlueprintReadWrite)

@@ -43,6 +43,11 @@ void AMultiplayManager::QuitGame()
 // host the game
 void AMultiplayManager::HostGame(bool use_lan, FName level)
 {
+	APlayerChar* p = Cast<APlayerChar>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (p != nullptr) {
+		p->LevelName = level;
+	}
+
 	UE_LOG(LogTemp, Log, TEXT("[fun] hostgame"));
 	if (use_lan) { // host game using lan
 		BP_OpenGameLan(level);
@@ -51,16 +56,32 @@ void AMultiplayManager::HostGame(bool use_lan, FName level)
 		FName* cmd = new FName("open " + level.ToString() + "?listen");
 		BP_OpenGameIp(*cmd);
 	}
+	UserJoind();
 }
 
 // join the ip game
 void AMultiplayManager::JoinGameIp(FName adress)
 {
 	BP_JoinGameIp(adress);
+	UserJoind();
 }
 
 // join the lan game
 void AMultiplayManager::JoinGameLan()
 {
 	BP_JoinGameLan();
+	UserJoind();
+}
+
+void AMultiplayManager::UserJoind_Implementation()
+{
+	session_info.user_count += 1;
+}
+
+void AMultiplayManager::StartGame()
+{
+	APlayerChar* p = Cast<APlayerChar>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (p != nullptr) {
+		p->TpLevel(p->LevelName);
+	}
 }

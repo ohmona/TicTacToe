@@ -2,6 +2,7 @@
 
 
 #include "CollisionTrigger.h"
+#include <TicTacToe/PlayerCharController.h>
 
 ACollisionTrigger::ACollisionTrigger()
 {
@@ -11,13 +12,13 @@ ACollisionTrigger::ACollisionTrigger()
 void ACollisionTrigger::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	if (isEnable) {
-		events->RunEvent(desired_event, this, OtherActor);
+		ctr()->ExecuteEventServer(desired_event, this, OtherActor);
 	}
 }
 
 void ACollisionTrigger::NotifyActorEndOverlap(AActor* OtherActor)
 {
 	if (activate_twice && isEnable) {
-		events->RunEvent(desired_event ,this , OtherActor);
+		ctr()->ExecuteEventServer(desired_event, this, OtherActor); // client -> Server
 	}
 }

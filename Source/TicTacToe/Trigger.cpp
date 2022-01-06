@@ -26,3 +26,12 @@ void ATrigger::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
+
+void ATrigger::Run()
+{
+}
+
+APlayerCharController* ATrigger::ctr()
+{
+	return Cast<APlayerCharController>(GetWorld()->GetFirstPlayerController());
+}

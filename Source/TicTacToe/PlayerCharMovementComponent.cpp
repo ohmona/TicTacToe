@@ -27,8 +27,8 @@ bool UPlayerCharMovementComponent::WalkLoop(float DeltaTime)
 	FVector forward_direction = p->GetActorForwardVector();
 	FVector right_direction = p->GetActorRightVector();
 	//AddInputVector(forward_velocity * walkAxisValue * FMath::Square(currentWalkSpeed));
-	p->AddMovementInput(forward_direction, walkForwardAxisValue, false);
-	p->AddMovementInput(right_direction, walkRightAxisValue, false);
+	p->AddMovementInput(forward_direction * DeltaTime * 100, walkForwardAxisValue, false);
+	p->AddMovementInput(right_direction * DeltaTime * 100, walkRightAxisValue, false);
 	return true;
 }
 

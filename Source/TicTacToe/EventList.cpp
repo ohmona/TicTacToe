@@ -13,9 +13,9 @@ void AEventList::RunEvent(EEvent target_event, AActor* trigger, AActor* target)
 {
     if (target_event == EEvent::PrintLog) PrintLog();
     if (target_event == EEvent::ReZero) ReZero(target);
-    if (target_event == EEvent::RotateCamera) RotateCamera(target);
+    if (target_event == EEvent::RotateCamera) RotateCamera(target); // client
     if (target_event == EEvent::Respawn) Respawn(target);
-    if (target_event == EEvent::ShakeCamera) ShakeCamera(target);
+    if (target_event == EEvent::ShakeCamera) ShakeCamera(target); //client
     if (target_event == EEvent::SetSpawnPoint) SetSpawnPoint(target);
 
     ATrigger* trig = Cast<ATrigger>(trigger);
